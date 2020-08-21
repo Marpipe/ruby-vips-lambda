@@ -10,10 +10,12 @@ ENV LD_LIBRARY_PATH=/opt/lib:/opt/lib64:$LD_LIBRARY_PATH
 ENV PKG_CONFIG_PATH=/opt/lib/pkgconfig:/opt/lib64/pkgconfig
 
 # Setup Some Dirs
-#
+
 RUN mkdir -p \
     share/lib \
-    share/include
+    share/include \
+    share/etc/pango \
+    share/lib/pango/1.8.0
 
 # Install expat
 #
@@ -107,18 +109,121 @@ RUN curl -L http://ftp.gnome.org/pub/gnome/sources/gobject-introspection/1.64/go
     ninja && \
     ninja install
 
+# Install librsvg and pango all the annoying stuff they depend on
+#
+
+#libcroco needs xml. FontConfig & cairo need the other stuff
+
+RUN curl -L https://downloads.sourceforge.net/freetype/freetype-2.10.2.tar.xz > freetype-2.10.2.tar.xz && \
+    tar -xf freetype-2.10.2.tar.xz && \
+    cd freetype-2.10.2 && \
+    ./configure --prefix=/opt --disable-static && \
+    make && \
+    make install
+
+RUN cp -a /opt/lib/libfreetype.so* /build/share/lib
+
+RUN curl -L  https://www.cairographics.org/releases/pixman-0.40.0.tar.gz > pixman-0.40.0.tar.gz && \
+    tar xvf pixman-0.40.0.tar.gz && \
+    cd pixman-0.40.0 && \
+    ./configure --prefix=/opt --disable-static && \
+    make && \
+    make install
+
+RUN cp -a /opt/lib/libpixman-1.so* /build/share/lib
+
+RUN yum install -y pixman-devel \ 
+    harfbuzz-devel \
+    freetype-devel \
+    pango-devel \
+    libxml2-devel
+
+RUN curl -L http://ftp.gnome.org/pub/GNOME/sources/libcroco/0.6/libcroco-0.6.8.tar.xz > libcroco-0.6.8.tar.xz && \
+    tar -xf libcroco-0.6.8.tar.xz && \
+    cd libcroco-0.6.8 && \
+    ./configure --prefix=/opt --disable-static && \
+    make && \
+    make install
+
+RUN cp -a /opt/lib/libcroco-0.6.so* /build/share/lib
+
+RUN curl -L https://github.com/harfbuzz/harfbuzz/releases/download/2.6.8/harfbuzz-2.6.8.tar.xz > harfbuzz-2.6.8.tar.xz && \
+    tar -xf harfbuzz-2.6.8.tar.xz && \
+    cd harfbuzz-2.6.8 && \
+    ./configure --prefix=/opt --disable-static && \
+    make && \
+    make install
+
+RUN cp -a /opt/lib/libharfbuzz.so* /build/share/lib
+
+RUN curl -L http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.10.91.tar.gz > fontconfig-2.10.91.tar.gz && \
+    tar xvf fontconfig-2.10.91.tar.gz && \
+    cd fontconfig-2.10.91 && \
+    ./configure --prefix=/opt --disable-static --disable-docs && \
+    make && \
+    make install
+
+RUN cp -a /opt/lib/libfontconfig.so* /build/share/lib
+
+RUN curl -L http://cairographics.org/releases/cairo-1.12.14.tar.xz > cairo-1.12.14.tar.xz && \
+    tar xvfJ cairo-1.12.14.tar.xz && \
+    cd cairo-1.12.14 && \
+    ./configure CFLAGS="-fno-lto" --prefix=/opt --disable-static && \
+    make && \
+    make install
+
+RUN cp -a /opt/lib/libcairo.so* /build/share/lib 
+# && 
+# \
+# cp -a /opt/lib/libcairo-gobject.so* /build/share/lib && \
+# cp -a /opt/lib/libcairo-script-interpreter.so*  /build/share/lib
+
+RUN curl -L http://ftp.gnome.org/pub/GNOME/sources/pango/1.34/pango-1.34.1.tar.xz > pango-1.34.1.tar.xz && \
+    tar xvfJ pango-1.34.1.tar.xz && \
+    cd pango-1.34.1 && \
+    ./configure --prefix=/opt --disable-static && \
+    make && \
+    make install
+
+RUN pango-querymodules --update-cache
+
+RUN cp -a /opt/lib/libpango-1.0.so* /build/share/lib && \
+    cp -a /opt/lib/libpangocairo-1.0.so* /build/share/lib && \
+    cp -a /opt/lib/libpangoft2-1.0.so* /build/share/lib && \
+    cp -a /opt/etc/pango/* /build/share/etc/pango && \
+    cp -a /opt/lib/pango/1.8.0/* /build/share/lib/pango/1.8.0
+
+
+RUN curl -L http://ftp.gnome.org/pub/gnome/sources/gdk-pixbuf/2.28/gdk-pixbuf-2.28.2.tar.xz > gdk-pixbuf-2.28.2.tar.xz && \
+    tar xvfJ gdk-pixbuf-2.28.2.tar.xz && \
+    cd gdk-pixbuf-2.28.2 && \
+    ./configure --prefix=/opt --disable-static --without-libjpeg --without-libtiff && \
+    make && \
+    make install
+
+RUN cp -a /opt/lib/libgdk_pixbuf-2.0.so* /build/share/lib 
+
+RUN curl -L http://ftp.gnome.org/pub/gnome/sources/librsvg/2.40/librsvg-2.40.3.tar.xz > librsvg-2.40.3.tar.xz && \
+    tar -xf librsvg-2.40.3.tar.xz && \
+    cd librsvg-2.40.3 && \
+    ./configure --prefix=/opt --disable-static && \
+    make && \
+    make install
+
+RUN cp -a /opt/lib/librsvg-2.so* /build/share/lib 
+
 # Install libvips.
 #
 RUN curl -L https://github.com/libvips/libvips/releases/download/v${VIPS_VERSION}/vips-${VIPS_VERSION}.tar.gz > vips-${VIPS_VERSION}.tar.gz && \
     tar -xf vips-${VIPS_VERSION}.tar.gz && \
     cd vips-${VIPS_VERSION} && \
     ./configure \
-      --prefix=/opt \
-      --disable-gtk-doc \
-      --without-magick \
-      --with-expat=/opt \
-      --with-giflib-includes=/opt/local/include \
-      --with-giflib-libraries=/opt/local/lib && \
+    --prefix=/opt \
+    --disable-gtk-doc \
+    --without-magick \
+    --with-expat=/opt \
+    --with-giflib-includes=/opt/local/include \
+    --with-giflib-libraries=/opt/local/lib && \
     make && \
     make install && \
     echo /opt/lib > /etc/ld.so.conf.d/libvips.conf && \
@@ -133,6 +238,10 @@ RUN echo $VIPS_VERSION > "./share/VIPS_VERSION"
 # Create an /build/share/opt/lib64 symlink for shared objects.
 #
 RUN cd ./share && ln -s lib lib64
+
+# try to fix broken pango
+# should prob try taking out pango-devel
+# RUN pango-querymodules > '/opt/etc/pango/pango.modules'
 
 # Zip up contents so final `lib` can be placed in /opt layer.
 #
