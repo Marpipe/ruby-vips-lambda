@@ -212,6 +212,15 @@ RUN curl -L http://ftp.gnome.org/pub/gnome/sources/librsvg/2.40/librsvg-2.40.3.t
 
 RUN cp -a /opt/lib/librsvg-2.so* /build/share/lib 
 
+RUN curl -L https://downloads.sourceforge.net/lcms/lcms2-2.11.tar.gz > lcms2-2.11.tar.gz && \
+    tar xvf lcms2-2.11.tar.gz && \
+    cd lcms2-2.11 && \
+    ./configure --prefix=/opt --disable-static --disable-docs && \
+    make && \
+    make install
+
+RUN cp -a /opt/lib/liblcms2.so* /build/share/lib
+
 # Install libvips.
 #
 RUN curl -L https://github.com/libvips/libvips/releases/download/v${VIPS_VERSION}/vips-${VIPS_VERSION}.tar.gz > vips-${VIPS_VERSION}.tar.gz && \
@@ -233,7 +242,7 @@ RUN cp -a /opt/lib/libvips.so* /build/share/lib
 
 # Store the VIPS_VERSION variable in a file, accessible to the deploy script.
 #
-RUN echo $VIPS_VERSION > "./share/VIPS_VERSION"
+RUN echo $VIPS_VERSION >> ./share/.VIPS_VERSION
 
 # Create an /build/share/opt/lib64 symlink for shared objects.
 #
