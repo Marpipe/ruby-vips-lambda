@@ -80,7 +80,8 @@ RUN cp -a /opt/lib/libimagequant.so* /build/share/lib/ && \
 #
 RUN yum install -y \
     gtk-doc \
-    ninja-build
+    ninja-build \
+    libffi-devel
 
 RUN pip3 install meson && \
     pip3 install ninja
@@ -94,8 +95,8 @@ RUN curl -L http://ftp.gnome.org/pub/gnome/sources/glib/2.64/glib-2.64.2.tar.xz 
     ninja && \
     ninja install
 
-RUN cp -a /opt/lib64/libffi.so* /build/share/lib && \
-    cp -a /opt/lib64/libglib-2.0.so* /build/share/lib && \
+# RUN cp -a /opt/lib64/libffi.so* /build/share/lib && \
+RUN cp -a /opt/lib64/libglib-2.0.so* /build/share/lib && \
     cp -a /opt/lib64/libgmodule-2.0.so* /build/share/lib && \
     cp -a /opt/lib64/libgobject-2.0.so* /build/share/lib && \
     cp -a /opt/lib64/libgthread-2.0.so* /build/share/lib
@@ -165,9 +166,9 @@ RUN curl -L http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.
 
 RUN cp -a /opt/lib/libfontconfig.so* /build/share/lib
 
-RUN curl -L http://cairographics.org/releases/cairo-1.12.14.tar.xz > cairo-1.12.14.tar.xz && \
-    tar xvfJ cairo-1.12.14.tar.xz && \
-    cd cairo-1.12.14 && \
+RUN curl -L http://cairographics.org/releases/cairo-1.14.12.tar.xz > cairo-1.14.12.tar.xz && \
+    tar xvfJ cairo-1.14.12.tar.xz && \
+    cd cairo-1.14.12 && \
     ./configure CFLAGS="-fno-lto" --prefix=/opt --disable-static && \
     make && \
     make install
@@ -178,20 +179,20 @@ RUN cp -a /opt/lib/libcairo.so* /build/share/lib
 # cp -a /opt/lib/libcairo-gobject.so* /build/share/lib && \
 # cp -a /opt/lib/libcairo-script-interpreter.so*  /build/share/lib
 
-RUN curl -L http://ftp.gnome.org/pub/GNOME/sources/pango/1.34/pango-1.34.1.tar.xz > pango-1.34.1.tar.xz && \
-    tar xvfJ pango-1.34.1.tar.xz && \
-    cd pango-1.34.1 && \
+RUN curl -L http://ftp.gnome.org/pub/GNOME/sources/pango/1.38/pango-1.38.1.tar.xz > pango-1.38.1.tar.xz && \
+    tar xvfJ pango-1.38.1.tar.xz && \
+    cd pango-1.38.1 && \
     ./configure --prefix=/opt --disable-static && \
     make && \
     make install
 
-RUN pango-querymodules --update-cache
+# RUN pango-querymodules --update-cache
 
 RUN cp -a /opt/lib/libpango-1.0.so* /build/share/lib && \
     cp -a /opt/lib/libpangocairo-1.0.so* /build/share/lib && \
-    cp -a /opt/lib/libpangoft2-1.0.so* /build/share/lib && \
-    cp -a /opt/etc/pango/* /build/share/etc/pango && \
-    cp -a /opt/lib/pango/1.8.0/* /build/share/lib/pango/1.8.0
+    cp -a /opt/lib/libpangoft2-1.0.so* /build/share/lib
+    # cp -a /opt/etc/pango  /* /build/share/etc/pango && \
+    # cp -a /opt/lib/pango/1.8.0/* /build/share/lib/pango/1.8.0
 
 
 RUN curl -L http://ftp.gnome.org/pub/gnome/sources/gdk-pixbuf/2.28/gdk-pixbuf-2.28.2.tar.xz > gdk-pixbuf-2.28.2.tar.xz && \
@@ -203,23 +204,35 @@ RUN curl -L http://ftp.gnome.org/pub/gnome/sources/gdk-pixbuf/2.28/gdk-pixbuf-2.
 
 RUN cp -a /opt/lib/libgdk_pixbuf-2.0.so* /build/share/lib 
 
-RUN curl -L http://ftp.gnome.org/pub/gnome/sources/librsvg/2.40/librsvg-2.40.3.tar.xz > librsvg-2.40.3.tar.xz && \
-    tar -xf librsvg-2.40.3.tar.xz && \
-    cd librsvg-2.40.3 && \
+RUN curl -L http://ftp.gnome.org/pub/gnome/sources/librsvg/2.40/librsvg-2.40.20.tar.xz > librsvg-2.40.20.tar.xz && \
+    tar -xf librsvg-2.40.20.tar.xz && \
+    cd librsvg-2.40.20 && \
     ./configure --prefix=/opt --disable-static && \
     make && \
     make install
 
 RUN cp -a /opt/lib/librsvg-2.so* /build/share/lib 
 
-RUN curl -L https://downloads.sourceforge.net/lcms/lcms2-2.11.tar.gz > lcms2-2.11.tar.gz && \
-    tar xvf lcms2-2.11.tar.gz && \
-    cd lcms2-2.11 && \
+RUN curl -L https://downloads.sourceforge.net/lcms/lcms2-2.12.tar.gz > lcms2-2.12.tar.gz && \
+    tar xvf lcms2-2.12.tar.gz && \
+    cd lcms2-2.12 && \
     ./configure --prefix=/opt --disable-static --disable-docs && \
     make && \
     make install
 
 RUN cp -a /opt/lib/liblcms2.so* /build/share/lib
+
+
+RUN curl -L https://github.com/libexif/libexif/releases/download/libexif-0_6_22-release/libexif-0.6.22.tar.xz > libexif-0.6.22.tar.xz && \
+    tar -xf libexif-0.6.22.tar.xz && \
+    curl -L http://www.linuxfromscratch.org/patches/blfs/svn/libexif-0.6.22-security_fixes-1.patch > libexif-0.6.22-security_fixes-1.patch && \
+    cd libexif-0.6.22 && \
+    patch -Np1 -i ../libexif-0.6.22-security_fixes-1.patch && \
+    ./configure --prefix=/opt --disable-static && \
+    make && \
+    make install
+
+RUN cp -a /opt/lib/libexif.so* /build/share/lib
 
 # Install libvips.
 #
