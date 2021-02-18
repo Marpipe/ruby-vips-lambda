@@ -223,16 +223,16 @@ RUN curl -L https://downloads.sourceforge.net/lcms/lcms2-2.12.tar.gz > lcms2-2.1
 RUN cp -a /opt/lib/liblcms2.so* /build/share/lib
 
 
-RUN curl -L https://github.com/libexif/libexif/releases/download/libexif-0_6_22-release/libexif-0.6.22.tar.xz > libexif-0.6.22.tar.xz && \
-    tar -xf libexif-0.6.22.tar.xz && \
-    curl -L http://www.linuxfromscratch.org/patches/blfs/svn/libexif-0.6.22-security_fixes-1.patch > libexif-0.6.22-security_fixes-1.patch && \
-    cd libexif-0.6.22 && \
-    patch -Np1 -i ../libexif-0.6.22-security_fixes-1.patch && \
-    ./configure --prefix=/opt --disable-static && \
-    make && \
-    make install
+# RUN curl -L https://github.com/libexif/libexif/releases/download/libexif-0_6_22-release/libexif-0.6.22.tar.xz > libexif-0.6.22.tar.xz && \
+#     tar -xf libexif-0.6.22.tar.xz && \
+#     curl -L http://www.linuxfromscratch.org/patches/blfs/svn/libexif-0.6.22-security_fixes-1.patch > libexif-0.6.22-security_fixes-1.patch && \
+#     cd libexif-0.6.22 && \
+#     patch -Np1 -i ../libexif-0.6.22-security_fixes-1.patch && \
+#     ./configure --prefix=/opt --disable-static && \
+#     make && \
+#     make install
 
-RUN cp -a /opt/lib/libexif.so* /build/share/lib
+# RUN cp -a /opt/lib/libexif.so* /build/share/lib
 
 # Install libvips.
 #
